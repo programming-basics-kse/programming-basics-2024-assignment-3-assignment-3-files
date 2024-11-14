@@ -1,0 +1,2 @@
+def medals(options):
+    pass
