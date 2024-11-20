@@ -15,7 +15,7 @@ data = [{data[0][n]: int(field) if field.isdigit() else field for n, field in en
 def format_left(string, length): return string + " "*(length - len(string))
 def format_center(string, length): return ' '*((n := length - len(string))//2) + string + ' '*((n+n%2)//2)
 
-def handle_medals_arg(data_: list, country: str, year: int) -> str:
+def handle_medals_arg(data_: list, country: str, year: int) -> tuple:
     entries = [entry for entry in data_ if country in (entry['Team'].split('-')[0], entry['NOC']) and
                entry['Year'] == year and entry['Medal'] != 'NA']
     if not entries: raise ValueError("No entries found")
@@ -27,26 +27,16 @@ def handle_medals_arg(data_: list, country: str, year: int) -> str:
     separator: str = '-' * string_len
     header: str = f" №   | {' | '.join((format_center(x, max_len[i]) for i, x in enumerate(('Name', 'Sport'))))} | Medal  |"
     body: str = '\n'.join(
-        f" {n + 1}. {' ' if n < 9 else ''}| " +
-        ' | '.join(format_left(x[i], max_len[i]) for i in range(3))
-        for n, x in enumerate(first10)
-    )
+        f" {n + 1}. {' ' if n < 9 else ''}| " + ' | '.join(format_left(x[i], max_len[i]) for i in range(3)) + ' |'
+        for n, x in enumerate(first10))
     total_medals = {
         medal: [entry['Medal'] for entry in entries].count(medal) for medal in ['Gold', 'Silver', 'Bronze']
     }
     medal_label = "Gold: {Gold}, Silver: {Silver}, Bronze: {Bronze}".format(**total_medals)
     footer: str = format_center(f"Total medals: {medal_label}", string_len)
-    return f"""
-{title}
-{separator}
-{header}
-{separator}
-{body}
-{separator}
-{footer}
-    """
+    return title, header, body, separator, footer
 
-def handle_total_arg(data_: list, year: int) -> str:
+def handle_total_arg(data_: list, year: int) -> tuple:
     entries = [entry for entry in data_  if year == entry['Year'] and entry['Medal'] != 'NA']
     if not entries: raise ValueError("No entries found")
 
@@ -66,30 +56,22 @@ def handle_total_arg(data_: list, year: int) -> str:
     header: str = f" №   | {' | '.join((format_center(x, max_len[i]) for i, x in enumerate(header_list)))} |"
     body: str = '\n'.join(
         f" {n + 1}. {' ' if n < 9 else ''}| " +
-        ' | '.join(
+    ' | '.join(
             format_left(x[i], max_len[i]) if i == 0 else format_center(x[i], max_len[i])
-            for i in range(4)
-        ) + ' | '
-        for n, x in enumerate(medals)
-    )
-    return f"""
-{title}
-{separator}
-{header}
-{separator}
-{body}
-{separator}
-        """
+            for i in range(4)) + ' | '
+        for n, x in enumerate(medals))
+    return title, header, body, separator
 
-def output(text: str):
+def output(title: str, header: str, body: str, separator: str, footer = '') -> None:
+    text = f"\n{title}\n{separator}\n{header}\n{separator}\n{body}\n{separator}\n{footer}"
     print(text)
     if config["output"]:
         print(text, file=open(config['output'], 'w'))
 
 if config["medals"]:
-    output(handle_medals_arg(data, config["medals"][0], int(config["medals"][1])))
+    output(*handle_medals_arg(data, config["medals"][0], int(config["medals"][1])))
 elif config["total"]:
-    output(handle_total_arg(data, int(config["total"])))
+    output(*handle_total_arg(data, int(config["total"])))
 elif config["overall"]:
     pass
 elif config["interactive"]:
