@@ -15,7 +15,7 @@ data = [{data[0][n]: int(field) if field.isdigit() else field for n, field in en
 def format_left(string, length): return string + " "*(length - len(string))
 def format_center(string, length): return ' '*((n := length - len(string))//2) + string + ' '*((n+n%2)//2)
 
-def handle_medals_arg(data_: list, country: str, year: int):
+def handle_medals_arg(data_: list, country: str, year: int) -> str:
     entries = [entry for entry in data_ if country in (entry['Team'].split('-')[0], entry['NOC']) and
                entry['Year'] == year and entry['Medal'] != 'NA']
     if not entries: raise ValueError("No entries found")
@@ -23,16 +23,63 @@ def handle_medals_arg(data_: list, country: str, year: int):
     max_len = [max(len(x[i]) for x in first10) for i in range(3)]
     string_len = sum(max_len) + 15
 
+    title: str = format_center('Medalists:', string_len)
+    separator: str = '-' * string_len
+    header: str = f" №   | {' | '.join((format_center(x, max_len[i]) for i, x in enumerate(('Name', 'Sport'))))} | Medal  |"
+    body: str = '\n'.join(
+        f" {n + 1}. {' ' if n < 9 else ''}| " +
+        ' | '.join(format_left(x[i], max_len[i]) for i in range(3))
+        for n, x in enumerate(first10)
+    )
+    total_medals = {
+        medal: [entry['Medal'] for entry in entries].count(medal) for medal in ['Gold', 'Silver', 'Bronze']
+    }
+    medal_label = "Gold: {Gold}, Silver: {Silver}, Bronze: {Bronze}".format(**total_medals)
+    footer: str = format_center(f"Total medals: {medal_label}", string_len)
     return f"""
-{format_center('Medalists:', string_len)}
-{'-' * string_len}
- №   | {' | '.join((format_center(x, max_len[i]) for i, x in enumerate(('Name', 'Sport'))))} | Medal  |
-{'-' * string_len}
-{'\n'.join((f' {n + 1}. {' ' * (n < 9)}| ' +
-            ' | '.join((*(format_left(x[i], max_len[i]) for i in range(3)), '')) for n, x in enumerate(first10)))}
-{'-' * string_len}
-Total medals: {"Gold: {Gold}, Silver: {Silver}, Bronze: {Bronze}".format(**{
-    medal: [entry['Medal'] for entry in entries].count(medal) for medal in ['Gold', 'Silver', 'Bronze']})}"""
+{title}
+{separator}
+{header}
+{separator}
+{body}
+{separator}
+{footer}
+    """
+
+def handle_total_arg(data_: list, year: int) -> str:
+    entries = [entry for entry in data_  if year == entry['Year'] and entry['Medal'] != 'NA']
+    if not entries: raise ValueError("No entries found")
+
+    medals_count = {}
+    for entry in entries:
+        country = entry['Team'].split('-')[0]
+        if country not in medals_count: medals_count[country] = {'Gold': 0, 'Silver': 0, 'Bronze': 0}
+        medals_count[country][entry['Medal']] += 1
+
+    medals = [(e, str(medals_count[e]['Gold']), str(medals_count[e]['Silver']), str(medals_count[e]['Bronze'])) for e in medals_count.keys()]
+    header_list = ('Country', 'Gold', 'Silver', 'Bronze')
+    max_len = [max(max(len(x[i]) for x in medals), len(header_list[i])) for i in range(4)]
+    string_len = sum(max_len) + 18
+
+    title: str = format_center('Countries:', string_len)
+    separator: str = '-' * string_len
+    header: str = f" №   | {' | '.join((format_center(x, max_len[i]) for i, x in enumerate(header_list)))} |"
+    body: str = '\n'.join(
+        f" {n + 1}. {' ' if n < 9 else ''}| " +
+        ' | '.join(
+            format_left(x[i], max_len[i]) if i == 0 else format_center(x[i], max_len[i])
+            for i in range(4)
+        ) + ' | '
+        for n, x in enumerate(medals)
+    )
+    return f"""
+{title}
+{separator}
+{header}
+{separator}
+{body}
+{separator}
+        """
 
 def output(text: str):
     print(text)
@@ -40,10 +87,9 @@ def output(text: str):
         print(text, file=open(config['output'], 'w'))
 
 if config["medals"]:
-    output_text = handle_medals_arg(data, config["medals"][0], int(config["medals"][1]))
-    output(output_text)
+    output(handle_medals_arg(data, config["medals"][0], int(config["medals"][1])))
 elif config["total"]:
-    pass
+    output(handle_total_arg(data, int(config["total"])))
 elif config["overall"]:
     pass
 elif config["interactive"]:
