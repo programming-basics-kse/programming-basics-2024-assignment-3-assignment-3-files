@@ -23,9 +23,9 @@ if len(medals_list) < 2:
 
 try:
     print(medals_list)
-    year = int(medals_list[-1])
-    team = " ".join(medals_list[:-1])
-    print(f"Year: {year}, team: {team}")
+    year_medals_arg = int(medals_list[-1])
+    team_medals_arg = " ".join(medals_list[:-1])
+    print(f"Year: {year_medals_arg}, team: {team_medals_arg}")
 except Exception:
     print(f'The entered year is not a valid number')
     pass
@@ -44,7 +44,7 @@ with open(dataset_filepath, 'rt') as file:
     file_csv_reader = csv.reader(file, delimiter=',')
     rows_file = []
     header_file = get_header_indexes(next(file_csv_reader))
-    for row in file:
+    for row in file_csv_reader:
         rows_file.append(row)
 
 def get_medals(noc:str, year:int):
@@ -55,6 +55,8 @@ def get_medals(noc:str, year:int):
     medals = {"Gold": 0, "Silver": 0, "Bronze": 0}
     for row in rows_file:
         if row[header_file["NOC"]] != noc and row[header_file["Team"]].upper() != noc:
+            if row[header_file["Year"]] == str(year):
+                wrong_year = False
             continue
         wrong_noc = False
         if row[header_file["Year"]] == str(year):
@@ -77,4 +79,4 @@ def get_medals(noc:str, year:int):
         print(f"Silver: {medals["Silver"]}")
         print(f"Bronze: {medals["Bronze"]}")
 
-get_medals("Ukraine", 2003)
+get_medals(team_medals_arg, year_medals_arg)
