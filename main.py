@@ -21,7 +21,7 @@ def main():
         print(f"File {dataset_filepath.value} does not exist!")
         print("PROGRAM STOPPED")
         return
-        # todo STOP THE PROGRAM HERE !!!!
+        # done STOP THE PROGRAM HERE !!!!
 
     with open(dataset_filepath.value, 'rt') as file:
         file_csv_reader = csv.reader(file, delimiter=',')
@@ -50,8 +50,7 @@ def main():
 
     totalYear = args["total"]
     if totalYear != None:
-        pass
-        # call function
+        get_total(totalYear, rows_file, header_file)
 
     overall = args["overall"]
 
@@ -99,6 +98,32 @@ def get_medals(noc: str, year: int, rows_file, header_file):
         print(f"Gold: {medals["Gold"]}")
         print(f"Silver: {medals["Silver"]}")
         print(f"Bronze: {medals["Bronze"]}")
+
+def get_total(year:int, rows_file, header_file):
+    year = str(year).strip()
+    wrong_year = True
+    countries = dict()
+    medals = {"Gold": 0, "Silver": 0, "Bronze": 0}
+
+    for row in rows_file:
+        if year == row[header_file["Year"]]:
+            wrong_year = False
+            if row[header_file["Medal"]] != "NA":
+                team = str(row[header_file["Team"]]).split("-")[0]  #some countries have more than 1 team with only difference is "...-1" in the end e.g. "Germany-1"
+                try:
+                    countries[team][row[header_file["Medal"]]] += 1
+                except KeyError:
+                    countries[team] = dict(medals)
+                    countries[team][row[header_file["Medal"]]] += 1
+
+    if wrong_year:
+        print(
+            f"{"\033[91m"}Seems like Olympics did not take place the year you entered.\n{"\033[93m"}You should try double checking that you entered it correctly.\n")
+        return
+
+    for country in countries:
+        print(f"{"\033[0m"}{country}: {"\033[1;93m"}Gold: {countries[country]["Gold"]}{"\033[0m"}, {"\033[0;37m"}Silver: {countries[country]["Silver"]}{"\033[0m"}, {"\033[0;33m"}Bronze: {countries[country]["Bronze"]}{"\033[0m"}.")
+
 
 def get_header_indexes(header_line):
     dictionary = dict()
