@@ -2,40 +2,70 @@ import csv
 import argparse
 from classes import MyClassForArguments
 
+def main():
+    parser = argparse.ArgumentParser()
 
-parser = argparse.ArgumentParser()
+    parser.add_argument("dataset_filepath", type=str, help="Dataset file filepath")
+    parser.add_argument("-medals", nargs="+", help="Medals that receive: [TEAM + YEAR]")
+    parser.add_argument("-output", help="Receive file name to output results")
+    parser.add_argument("-total", type=int, help="Receive year to total func")
+    parser.add_argument("-overall", nargs="+", help="Receive teams for overall medals")
 
-parser.add_argument("dataset_filepath", type=str, help="Dataset file filepath")
-parser.add_argument("-medals",  nargs="+", help="Medals that receive: [TEAM + YEAR]")
-parser.add_argument("-output", help="Receive file name to output results")
-parser.add_argument("-total", type=int, help="Receive year to total func")
-parser.add_argument("-overall", nargs="+", help="Receive teams for overall medals")
+    args = vars(parser.parse_args())
+    #
+    print(args)
 
-args = vars(parser.parse_args())
-#
-print(args)
+    dataset_filepath = MyClassForArguments(args["dataset_filepath"])
 
-dataset_filepath = MyClassForArguments( args["dataset_filepath"] )
+    if dataset_filepath.check_input_file_existing() == False:
+        print(f"File {dataset_filepath.value} does not exist!")
+        print("PROGRAM STOPPED")
+        return
+        # todo STOP THE PROGRAM HERE !!!!
 
-if dataset_filepath.check_input_file_existing() == False:
-    print(f"File {dataset_filepath.value} does not exist!")
-    print("PROGRAM STOPPED")
-    # todo STOP THE PROGRAM HERE !!!!
+    with open(dataset_filepath.value, 'rt') as file:
+        file_csv_reader = csv.reader(file, delimiter=',')
+        rows_file = []
+        header_file = get_header_indexes(next(file_csv_reader))
+        for row in file_csv_reader:
+            rows_file.append(row)
 
-def get_header_indexes(header_line):
-    dictionary = dict()
-    for index, elem in enumerate(header_line):
-        dictionary[elem] = index
-    return dictionary
+    medals_list = args["medals"]
+    if not medals_list is None:
+        if len(medals_list) < 2:
+            print(f"To use command 'medals' you have to enter the country and the year!")
+            # pass
+        else:
+            try:
+                #
+                print(medals_list)
+                year_medals_arg = int(medals_list[-1])
+                team_medals_arg = " ".join(medals_list[:-1])
+                #
+                print(f"Year: {year_medals_arg}, team: {team_medals_arg}")
+                get_medals(team_medals_arg, year_medals_arg, rows_file, header_file)
+            except Exception:
+                print(f"To use command 'medals' the entered year must be a valid number")
+                # pass
 
-with open(dataset_filepath.value, 'rt') as file:
-    file_csv_reader = csv.reader(file, delimiter=',')
-    rows_file = []
-    header_file = get_header_indexes(next(file_csv_reader))
-    for row in file_csv_reader:
-        rows_file.append(row)
+    totalYear = args["total"]
+    if totalYear != None:
+        pass
+        # call function
 
-def get_medals(noc:str, year:int):
+    overall = args["overall"]
+
+    if overall != None:
+        pass
+        # call function
+
+    output_filepath = MyClassForArguments(args["output"])
+    if output_filepath.check_output_file_existing() != False:
+        pass
+        # call function
+
+
+def get_medals(noc: str, year: int, rows_file, header_file):
     noc = noc.upper().strip()
     wrong_noc = True
     wrong_year = True
@@ -52,14 +82,17 @@ def get_medals(noc:str, year:int):
             try:
                 medals[row[header_file["Medal"]]] += 1
                 if not row[header_file["Name"]] in winners:
-                    winner = {"Name": row[header_file["Name"]], "Discipline": row[header_file["Event"]], "Medal": row[header_file["Medal"]]}
+                    winner = {"Name": row[header_file["Name"]], "Discipline": row[header_file["Event"]],
+                              "Medal": row[header_file["Medal"]]}
                     winners.append(winner)
             except KeyError:
                 continue
     if wrong_noc:
-        print(f"{"\033[91m"}Seems like the program could not understand what country did you mean.\n{"\033[93m"}You should try using NOC of the country you want.\n")
+        print(
+            f"{"\033[91m"}Seems like the program could not understand what country did you mean.\n{"\033[93m"}You should try using NOC of the country you want.\n")
     if wrong_year:
-        print(f"{"\033[91m"}Seems like Olympics did not take place the year you entered.\n{"\033[93m"}You should try double checking that you entered it correctly.\n")
+        print(
+            f"{"\033[91m"}Seems like Olympics did not take place the year you entered.\n{"\033[93m"}You should try double checking that you entered it correctly.\n")
     if not wrong_noc and not wrong_year:
         for winner in winners[:10]:
             print(f"{winner["Name"]} - {winner["Discipline"]} - {winner["Medal"]}")
@@ -67,39 +100,10 @@ def get_medals(noc:str, year:int):
         print(f"Silver: {medals["Silver"]}")
         print(f"Bronze: {medals["Bronze"]}")
 
+def get_header_indexes(header_line):
+    dictionary = dict()
+    for index, elem in enumerate(header_line):
+        dictionary[elem] = index
+    return dictionary
 
-
-medals_list = args["medals"]
-if medals_list != None:
-    if len(medals_list) < 2:
-        print(f"To use command 'medals' you have to enter the country and the year!")
-        # pass
-    else:
-        try:
-            #
-            print(medals_list)
-            year_medals_arg = int(medals_list[-1])
-            team_medals_arg = " ".join(medals_list[:-1])
-            #
-            print(f"Year: {year_medals_arg}, team: {team_medals_arg}")
-            get_medals(team_medals_arg, year_medals_arg)
-        except Exception:
-            print(f"To use command 'medals' the entered year must be a valid number")
-            # pass
-
-totalYear = args["total"]
-if totalYear != None:
-    pass
-    # call function
-
-overall = args["overall"]
-
-if overall != None:
-    pass
-    # call function
-
-
-output_filepath = MyClassForArguments( args["output"] )
-if output_filepath.check_output_file_existing() != False:
-    pass
-    # call function
+main()
