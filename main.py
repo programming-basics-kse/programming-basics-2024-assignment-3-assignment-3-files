@@ -1,6 +1,7 @@
 import csv
 import argparse
-import os.path
+from classes import MyClassForArguments
+
 
 parser = argparse.ArgumentParser()
 
@@ -14,11 +15,12 @@ args = vars(parser.parse_args())
 #
 print(args)
 
-dataset_filepath = args["dataset_filepath"]
+dataset_filepath = MyClassForArguments( args["dataset_filepath"] )
 
-if os.path.exists(dataset_filepath) == False:
-    print(f'There is no such file!')
-    # return False
+if dataset_filepath.check_input_file_existing() == False:
+    print(f"File {dataset_filepath.value} does not exist!")
+    print("PROGRAM STOPPED")
+    # todo STOP THE PROGRAM HERE !!!!
 
 def get_header_indexes(header_line):
     dictionary = dict()
@@ -26,7 +28,7 @@ def get_header_indexes(header_line):
         dictionary[elem] = index
     return dictionary
 
-with open(dataset_filepath, 'rt') as file:
+with open(dataset_filepath.value, 'rt') as file:
     file_csv_reader = csv.reader(file, delimiter=',')
     rows_file = []
     header_file = get_header_indexes(next(file_csv_reader))
@@ -88,18 +90,16 @@ if medals_list != None:
 totalYear = args["total"]
 if totalYear != None:
     pass
-    # call function total()
+    # call function
 
 overall = args["overall"]
-print(overall)
+
 if overall != None:
     pass
     # call function
-    # overallTeams = []
-    # for elem in overall:
-    #     overallTeams.append(elem)
-    # print(overallTeams)
 
 
-# file_to_output = args["output"]
-# # todo validation to output file in the end of the proj
+output_filepath = MyClassForArguments( args["output"] )
+if output_filepath.check_output_file_existing() != False:
+    pass
+    # call function
