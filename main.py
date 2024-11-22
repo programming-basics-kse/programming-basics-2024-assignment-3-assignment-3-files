@@ -5,34 +5,20 @@ import os.path
 parser = argparse.ArgumentParser()
 
 parser.add_argument("dataset_filepath", type=str, help="Dataset file filepath")
-parser.add_argument("-medals",  nargs="+" ,required=True, help="Medals that receive: [TEAM + YEAR]")
+parser.add_argument("-medals",  nargs="+", help="Medals that receive: [TEAM + YEAR]")
 parser.add_argument("-output", help="Receive file name to output results")
+parser.add_argument("-total", type=int, help="Receive year to total func")
+parser.add_argument("-overall", nargs="+", help="Receive teams for overall medals")
 
 args = vars(parser.parse_args())
+#
 print(args)
+
 dataset_filepath = args["dataset_filepath"]
 
 if os.path.exists(dataset_filepath) == False:
     print(f'There is no such file!')
-    pass
-
-medals_list = args["medals"]
-if len(medals_list) < 2:
-    print(f"You have to enter a country and the year!")
-    pass
-
-try:
-    print(medals_list)
-    year_medals_arg = int(medals_list[-1])
-    team_medals_arg = " ".join(medals_list[:-1])
-    print(f"Year: {year_medals_arg}, team: {team_medals_arg}")
-except Exception:
-    print(f'The entered year is not a valid number')
-    pass
-
-
-file_to_output = args["output"]
-# todo validation to output file
+    # return False
 
 def get_header_indexes(header_line):
     dictionary = dict()
@@ -79,4 +65,41 @@ def get_medals(noc:str, year:int):
         print(f"Silver: {medals["Silver"]}")
         print(f"Bronze: {medals["Bronze"]}")
 
-get_medals(team_medals_arg, year_medals_arg)
+
+
+medals_list = args["medals"]
+if medals_list != None:
+    if len(medals_list) < 2:
+        print(f"To use command 'medals' you have to enter the country and the year!")
+        # pass
+    else:
+        try:
+            #
+            print(medals_list)
+            year_medals_arg = int(medals_list[-1])
+            team_medals_arg = " ".join(medals_list[:-1])
+            #
+            print(f"Year: {year_medals_arg}, team: {team_medals_arg}")
+            get_medals(team_medals_arg, year_medals_arg)
+        except Exception:
+            print(f"To use command 'medals' the entered year must be a valid number")
+            # pass
+
+totalYear = args["total"]
+if totalYear != None:
+    pass
+    # call function total()
+
+overall = args["overall"]
+print(overall)
+if overall != None:
+    pass
+    # call function
+    # overallTeams = []
+    # for elem in overall:
+    #     overallTeams.append(elem)
+    # print(overallTeams)
+
+
+# file_to_output = args["output"]
+# # todo validation to output file in the end of the proj
