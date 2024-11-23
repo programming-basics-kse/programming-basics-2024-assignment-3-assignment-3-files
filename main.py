@@ -8,8 +8,9 @@ def main():
     parser.add_argument("dataset_filepath", type=str, help="Dataset file filepath")
     parser.add_argument("-medals", nargs="+", help="Medals that receive: [TEAM + YEAR]")
     parser.add_argument("-output", help="Receive file name to output results")
-    parser.add_argument("-total", type=int, help="Receive year to total func")
+    parser.add_argument("-total", help="Receive year to total func")
     parser.add_argument("-overall", nargs="+", help="Receive teams for overall medals")
+    parser.add_argument("-interactive", action="store_true", help="Make input open")
     #todo add -interactive argument (function for it is almost done)
 
     args = vars(parser.parse_args())
@@ -22,9 +23,8 @@ def main():
         print(f"File {dataset_filepath.value} does not exist!")
         print("PROGRAM STOPPED")
         return
-    else: dataset_filepath = dataset_filepath.value
 
-    with open(dataset_filepath, 'rt') as file:
+    with open(dataset_filepath.value, 'rt') as file:
         file_csv_reader = csv.reader(file, delimiter=',')
         rows_file = []
         header_file = get_header_indexes(next(file_csv_reader))
@@ -36,20 +36,20 @@ def main():
         year_medals_arg, team_medals_arg = medal_arg.check_medals()
         get_medals(team_medals_arg, year_medals_arg, rows_file, header_file)
 
-    totalYear = args["total"]
-    if totalYear != None:
-        get_total(totalYear, rows_file, header_file)
-        # get_interactive(rows_file, header_file)  #added for testing REMOVE LATER!
-    overall = args["overall"]
 
-    if overall != None:
-        pass
-        # call function
+    total_year = MyClassForArguments( args["total"] )
+    if total_year.check_total():
+        get_total(total_year.value, rows_file, header_file)
+
+    # get_interactive(rows_file, header_file)  #added for testing REMOVE LATER!
+
+    overall = MyClassForArguments( args["overall"] )
+    if overall.check_overall():
+        pass # call function
+
 
     output_filepath = MyClassForArguments( args["output"] )
-
     if output_filepath.check_output_file_existing():
-        output_filepath = output_filepath.value
         pass  # call the function
 
 
@@ -89,8 +89,9 @@ def get_medals(noc: str, year: int, rows_file, header_file):
         print(f"Silver: {medals["Silver"]}")
         print(f"Bronze: {medals["Bronze"]}")
 
-def get_total(year:int, rows_file, header_file):
-    year = str(year).strip()
+# arguments year type is str, not int! changed:  year:int -> year:str
+# year = str(year).strip() -> deleted  : this is no point in this line, type is str, and strip() is automatically used while entering argument
+def get_total(year:str, rows_file, header_file):
     wrong_year = True
     countries = dict()
     medals = {"Gold": 0, "Silver": 0, "Bronze": 0}

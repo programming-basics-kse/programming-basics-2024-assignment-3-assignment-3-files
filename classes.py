@@ -30,7 +30,16 @@ class MyClassForArguments:
                     print(f"Year {year} , team: {team}")
                     return year, team
                 except Exception:
-                    print(f"To use command 'medals' the entered year must be a valid number")
+                    print(f"To use command 'medals' the entered year must be a valid number!")
 
 
+    def check_total(self):
+        if not self.value is None:
+            try:
+                return int(self.value)
+            except ValueError:
+                print(f"To use command 'total' the entered year must be a valid number!")
 
+    def check_overall(self):
+        if not self.value is None:
+            return self.value
