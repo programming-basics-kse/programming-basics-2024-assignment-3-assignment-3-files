@@ -16,53 +16,42 @@ def main():
     #
     print(args)
 
-    dataset_filepath = MyClassForArguments(args["dataset_filepath"])
+    dataset_filepath = MyClassForArguments( args["dataset_filepath"] )
 
-    if dataset_filepath.check_input_file_existing() == False:
+    if not dataset_filepath.check_input_file_existing():
         print(f"File {dataset_filepath.value} does not exist!")
         print("PROGRAM STOPPED")
         return
-        # done STOP THE PROGRAM HERE !!!!
+    else: dataset_filepath = dataset_filepath.value
 
-    with open(dataset_filepath.value, 'rt') as file:
+    with open(dataset_filepath, 'rt') as file:
         file_csv_reader = csv.reader(file, delimiter=',')
         rows_file = []
         header_file = get_header_indexes(next(file_csv_reader))
         for row in file_csv_reader:
             rows_file.append(row)
 
-    medals_list = args["medals"]
-    if not medals_list is None:
-        if len(medals_list) < 2:
-            print(f"To use command 'medals' you have to enter the country and the year!")
-            # pass
-        else:
-            try:
-                #
-                print(medals_list)
-                year_medals_arg = int(medals_list[-1])
-                team_medals_arg = " ".join(medals_list[:-1])
-                #
-                print(f"Year: {year_medals_arg}, team: {team_medals_arg}")
-                get_medals(team_medals_arg, year_medals_arg, rows_file, header_file)
-            except Exception:
-                print(f"To use command 'medals' the entered year must be a valid number")
-                # pass
+    medal_arg = MyClassForArguments( args["medals"] )
+    if medal_arg.check_medals():
+        year_medals_arg, team_medals_arg = medal_arg.check_medals()
+        get_medals(team_medals_arg, year_medals_arg, rows_file, header_file)
 
     totalYear = args["total"]
     if totalYear != None:
-        # get_total(totalYear, rows_file, header_file)
-        get_interactive(rows_file, header_file)  #added for testing REMOVE LATER!
+        get_total(totalYear, rows_file, header_file)
+        # get_interactive(rows_file, header_file)  #added for testing REMOVE LATER!
     overall = args["overall"]
 
     if overall != None:
         pass
         # call function
 
-    output_filepath = MyClassForArguments(args["output"])
-    if output_filepath.check_output_file_existing() != False:
-        pass
-        # call function
+    output_filepath = MyClassForArguments( args["output"] )
+
+    if output_filepath.check_output_file_existing():
+        output_filepath = output_filepath.value
+        pass  # call the function
+
 
 
 def get_medals(noc: str, year: int, rows_file, header_file):
