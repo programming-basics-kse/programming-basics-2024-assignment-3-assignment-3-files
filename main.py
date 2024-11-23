@@ -10,6 +10,7 @@ def main():
     parser.add_argument("-output", help="Receive file name to output results")
     parser.add_argument("-total", type=int, help="Receive year to total func")
     parser.add_argument("-overall", nargs="+", help="Receive teams for overall medals")
+    #todo add -interactive argument (function for it is almost done)
 
     args = vars(parser.parse_args())
     #
@@ -50,8 +51,8 @@ def main():
 
     totalYear = args["total"]
     if totalYear != None:
-        get_total(totalYear, rows_file, header_file)
-
+        # get_total(totalYear, rows_file, header_file)
+        get_interactive(rows_file, header_file)  #added for testing REMOVE LATER!
     overall = args["overall"]
 
     if overall != None:
@@ -88,10 +89,10 @@ def get_medals(noc: str, year: int, rows_file, header_file):
                 continue
     if wrong_noc:
         print(
-            f"{"\033[91m"}Seems like the program could not understand what country did you mean.\n{"\033[93m"}You should try using NOC of the country you want.\n")
+            f"{"\033[91m"}Seems like the program could not understand what country did you mean.\n{"\033[93m"}You should try using NOC of the country you want.\n{"\033[0m"}")
     if wrong_year:
         print(
-            f"{"\033[91m"}Seems like Olympics did not take place the year you entered.\n{"\033[93m"}You should try double checking that you entered it correctly.\n")
+            f"{"\033[91m"}Seems like Olympics did not take place the year you entered.\n{"\033[93m"}You should try double checking that you entered it correctly.\n{"\033[0m"}")
     if not wrong_noc and not wrong_year:
         for winner in winners[:10]:
             print(f"{winner["Name"]} - {winner["Discipline"]} - {winner["Medal"]}")
@@ -120,9 +121,42 @@ def get_total(year:int, rows_file, header_file):
         print(
             f"{"\033[91m"}Seems like Olympics did not take place the year you entered.\n{"\033[93m"}You should try double checking that you entered it correctly.\n")
         return
-
     for country in countries:
         print(f"{"\033[0m"}{country}: {"\033[1;93m"}Gold: {countries[country]["Gold"]}{"\033[0m"}, {"\033[0;37m"}Silver: {countries[country]["Silver"]}{"\033[0m"}, {"\033[0;33m"}Bronze: {countries[country]["Bronze"]}{"\033[0m"}.")
+
+def get_interactive(rows_file, header_file):
+    while True:
+        print("Enter name or NOC of the country you want to get info about or 'exit'.")
+        country_name = input("Country: ").strip().lower()
+        if country_name == "exit":
+            print("Stopping the program.")
+            return
+        wrong_country = True
+        first_olymp = {"Year": 2077, "Season": 0,"City": 0}
+        medals = {"Gold": 0, "Silver": 0, "Bronze": 0, "Overall": 0}
+        medals_by_game = {"Overall": dict(medals)}
+
+        for row in rows_file:
+            if country_name == row[header_file["Team"]].lower() or country_name == row[header_file["NOC"]].lower():
+                wrong_country = False
+                try:
+                    row_year = int(row[header_file["Year"]])
+                except ValueError:
+                    continue
+                if int(first_olymp["Year"]) == row_year:
+                    if first_olymp["Season"] == "Summer" and row[header_file["Season"]] == "Winter":
+                        first_olymp["Season"] = "Winter"
+                        first_olymp["City"] = row[header_file["City"]]
+                elif int(first_olymp["Year"]) > row_year:
+                    first_olymp["Season"] = row[header_file["Season"]]
+                    first_olymp["Year"] = row_year
+                    first_olymp["City"] = row[header_file["City"]]
+
+
+        if wrong_country:
+            print(f"{"\033[91m"}Seems like the program could not understand what country did you mean.\n{"\033[93m"}You should try using NOC of the country you want.\n{"\033[0m"}")
+        else:
+            print(first_olymp)
 
 
 def get_header_indexes(header_line):
