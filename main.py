@@ -31,15 +31,18 @@ def main():
     if medal_arg.check_medals():
         year_medals_arg, team_medals_arg = medal_arg.check_medals()
         get_medals(team_medals_arg, year_medals_arg, rows_file, header_file)
+        print("\n")
 
 
     total_year = MyClassForArguments( args["total"] )
     if total_year.check_total():
         get_total(total_year.value, rows_file, header_file)
+        print("\n")
 
     overall = MyClassForArguments( args["overall"] )
     if overall.check_overall():
-        pass # call function
+        get_overall(overall.value, rows_file, header_file)
+        print("\n")
 
     # output_filepath = MyClassForArguments( args["output"] )
     # if output_filepath.check_output_file_existing():
@@ -47,7 +50,7 @@ def main():
 
     interactive = MyClassForArguments( args["interactive"] )
     if interactive.check_interactive():
-        pass # call the function
+        get_interactive(rows_file, header_file)
 
 
 def get_medals(noc: str, year: int, rows_file, header_file):
@@ -113,14 +116,14 @@ def get_overall(country_list, rows_file, header_file):
 
     for row in rows_file:
         team = str(row[header_file["Team"]]).split("-")[0]
-        if (team in country_list or row[header_file["NOC"]] in country_list) and row[header_file["Medal"]] != "NA":
+        if (team in country_list or row[header_file["NOC"]].title() in country_list) and row[header_file["Medal"]] != "NA":
             try:
                 medals_by_year[row[header_file["NOC"]]][row[header_file["Year"]]] += 1
             except KeyError as err:
                 if str(err)[1:-1] == row[header_file["NOC"]]:
                     medals_by_year[row[header_file["NOC"]]] = dict()
                 medals_by_year[row[header_file["NOC"]]][row[header_file["Year"]]] = 1
-    print(medals_by_year)
+    # print(medals_by_year)
     for country in medals_by_year:
         medals_by_year[country]["best"] = 0
         for year in medals_by_year[country]:
