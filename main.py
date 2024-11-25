@@ -199,3 +199,4 @@ def main():
 
 else:
     print(f"Invalid command: {command}")
+main()
