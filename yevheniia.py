@@ -25,3 +25,23 @@ def output_total(results, year, output_file=None):
             file.write(output_text)
     else:
         print(output_text)
+
+
+def main():
+    if len(sys.argv) < 3:
+        print("Not enough arguments. Use: python olympics.py <data_file> <command> [...args]")
+        return
+
+    data_file = sys.argv[1]
+    command = sys.argv[2]
+    results = process_data(data_file)
+    if command == "-total":
+        if len(sys.argv) < 4:
+            print("Not enough arguments for command -total. "
+              "Use: python olympics.py <data_file> -total <year> [-output <file>]")
+        return
+    year = int(sys.argv[3])
+    output_file = sys.argv[5] \
+        if ("-output"
+            in sys.argv) else None
+    output_total(results, year, output_file)
