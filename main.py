@@ -25,6 +25,11 @@ def output_medals(results, country, year, output_file=None):
 
     if not output_text:
         output_text = "No data for this country and year.\n"
+    if output_file:
+        with open(output_file, "w", encoding="utf-8") as file:
+            file.write(output_text)
+    else:
+        print(output_text)
 
 def output_total(results, year, output_file=None):
     medal_counts = {}
@@ -164,13 +169,8 @@ def main():
             if "-output" in sys.argv \
             else None
         output_medals(results, country, year, output_file)
-    elif command == "-interactive":
-        output_interactive(results)
 
-    else:
-        print(f"Invalid command: {command}")
-
-    if command == "-total":
+    elif command == "-total":
         if len(sys.argv) < 4:
             print("Not enough arguments for command -total. "
               "Use: python olympics.py <data_file> -total <year> [-output <file>]")
@@ -181,7 +181,7 @@ def main():
             in sys.argv) else None
     output_total(results, year, output_file)
 
-    if command == "-overall":
+    elif command == "-overall":
         if len(sys.argv) < 4:
             print("Not enough arguments for command -overall. "
               "Use: python olympics.py <data_file> -overall <country1> <country2> ... [-output <file>]")
