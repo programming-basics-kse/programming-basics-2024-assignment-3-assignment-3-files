@@ -7,18 +7,14 @@ def main():
 
     parser.add_argument("dataset_filepath", type=str, help="Dataset file filepath")
     parser.add_argument("-medals", nargs="+", help="Medals that receive: [TEAM + YEAR]")
-    parser.add_argument("-output", help="Receive file name to output results")
+    # parser.add_argument("-output", help="Receive file name to output results")
     parser.add_argument("-total", help="Receive year to total func")
     parser.add_argument("-overall", nargs="+", help="Receive teams for overall medals")
     parser.add_argument("-interactive", action="store_true", help="Make input open")
-    #todo add -interactive argument (function for it is almost done)
 
     args = vars(parser.parse_args())
-    #
-    print(args)
 
     dataset_filepath = MyClassForArguments( args["dataset_filepath"] )
-
     if not dataset_filepath.check_input_file_existing():
         print(f"File {dataset_filepath.value} does not exist!")
         print("PROGRAM STOPPED")
@@ -41,17 +37,17 @@ def main():
     if total_year.check_total():
         get_total(total_year.value, rows_file, header_file)
 
-    # get_interactive(rows_file, header_file)  #added for testing REMOVE LATER!
-
     overall = MyClassForArguments( args["overall"] )
     if overall.check_overall():
         pass # call function
 
+    # output_filepath = MyClassForArguments( args["output"] )
+    # if output_filepath.check_output_file_existing():
+    #     pass  # call the function
 
-    output_filepath = MyClassForArguments( args["output"] )
-    if output_filepath.check_output_file_existing():
-        pass  # call the function
-
+    interactive = MyClassForArguments( args["interactive"] )
+    if interactive.check_interactive():
+        pass # call the function
 
 
 def get_medals(noc: str, year: int, rows_file, header_file):
@@ -89,8 +85,6 @@ def get_medals(noc: str, year: int, rows_file, header_file):
         print(f"Silver: {medals["Silver"]}")
         print(f"Bronze: {medals["Bronze"]}")
 
-# arguments year type is str, not int! changed:  year:int -> year:str
-# year = str(year).strip() -> deleted  : this is no point in this line, type is str, and strip() is automatically used while entering argument
 def get_total(year:str, rows_file, header_file):
     wrong_year = True
     countries = dict()
