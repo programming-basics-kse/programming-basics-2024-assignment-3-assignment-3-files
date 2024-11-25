@@ -194,7 +194,8 @@ def main():
         else:
             output_file = None
         output_overall(results, countries, output_file)
-    else:
-        print(f"Invalid command: {command}")
+    elif command == "-interactive":
+    output_interactive(results)
 
-    main()
+else:
+    print(f"Invalid command: {command}")
