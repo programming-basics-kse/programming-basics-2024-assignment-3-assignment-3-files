@@ -72,3 +72,10 @@ def interactive(dataset):
     ave_b = round(sum_b/n,2)
     info = [country, first, first_place, best_y, best_y_num, worth_y, worth_y_num, ave_g, ave_s, ave_b]
     return info
+
+def pr_interactive(information):
+    print(f"Information about {information[0]}: ")
+    print(f"First year of participation: {information[1]} ({information[2]})")
+    print(f"Best year is {information[3]}, {information[4]} medals in total")
+    print(f"Worth year is {information[5]}, {information[6]} medals in total")
+    print(f"The average number of medals: gold - {information[7]}, silver - {information[8]}, bronze - {information[9]}")
