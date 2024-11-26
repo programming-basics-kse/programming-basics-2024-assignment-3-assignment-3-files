@@ -35,3 +35,7 @@ def total(list,year):
         countries[key].append(s)
         countries[key].append(b)
     return countries
+
+def pr_total(diction):
+    for key in diction:
+        print(f"{key} - Gold: {diction[key][0]} - Silver: {diction[key][1]} - Bronze: {diction[key][2]}")
