@@ -33,25 +33,32 @@ def medals(input_file, country, year) -> list[list]:
             counter += 1
         return medalists
 
+def output_file(output_file_name: str, content: str):
+    with open(output_file_name, 'wt') as file:
+        file.write(content)
+
 def output():
     medals_result = medals(args.input_file, args.medals[0], args.medals[1])
+    output_content = ''
+
     if len(medals_result) == 0:
-        print('No medalists found')
-        print('Please enter the correct country or year.')
-        exit()
+        output_content = 'No medalists found\nPlease enter the correct country or year.'
+    else:
+        for i in range(len(medals_result)):
+            output_content += f'{i+1}. '
+            output_content += f'{medals_result[i][0]} - {medals_result[i][1]} - {medals_result[i][2]}'
+            output_content += '\n'
+        gold = 0
+        silver = 0
+        bronze = 0
+        for i in medals_result:
+            gold += i.count('Gold')
+            silver += i.count('Silver')
+            bronze += i.count('Bronze')
+        output_content += f'Gold: {gold}\n'
+        output_content += f'Silver: {silver}\n'
+        output_content += f'Bronze: {bronze}'
 
-    for i in range(len(medals_result)):
-        print(f'{i+1}. ', end='')
-        print(medals_result[i][0], medals_result[i][1], medals_result[i][1], end='', sep=' - ')
-        print()
-
-    gold = 0
-    silver = 0
-    bronze = 0
-    for i in medals_result:
-        gold += i.count('Gold')
-        silver += i.count('Silver')
-        bronze += i.count('Bronze')
-    print(f'Gold: {gold}')
-    print(f'Silver: {silver}')
-    print(f'Bronze: {bronze}')
+    print(output_content)
+    if args.output is not None:
+        output_file(args.output, output_content)
