@@ -1,36 +1,82 @@
-import argparse
+import csv
+import sys
 
-parser = argparse.ArgumentParser("Sample program")
-par=1
-parser.add_argument('input_file', help="Filepath for an input file")
+def parse_arguments(args):
+    if len(args) < 4:
+        raise ValueError("Недостатньо аргументів. Мінімальна кількість: 4 (файл, команда, країна/рік).")
+    
+    file_path = args[1]
+    command = args[2]
+    
+    if command == "-medals":
+        if len(args) < 5:
+            raise ValueError("Для -medals необхідно вказати країну та рік.")
+        country = args[3]
+        year = args[4]
+        output_file = args[6] if len(args) > 6 and args[5] == "-output" else None
+        return file_path, command, country, year, output_file
+    
+    else:
+        raise ValueError(f"Trouble with: {command}")
 
-args = parser.parse_args()
-input_file = args.input_file
+def read_csv(file_path):
+    with open(file_path, encoding="utf-8") as f:
+        sample = f.read(1024)
+        delimiter = '\t' if '\t' in sample else ','
+        f.seek(0)
+        reader = csv.DictReader(f, delimiter=delimiter)
+        data = list(reader)
+        if not data:
+            raise ValueError("Trouble with file")
+        return data
 
-print(f"input_file: {args.input_file}")
+def medals_per_country(data, country, year):
+    filtered_data = [
+        row for row in data 
+        if (row.get("Team") == country or row.get("NOC") == country) 
+        and row.get("Year") == year 
+        and row.get("Medal") != "NA"
+    ]
+    filtered_data.sort(key=lambda x: (x["Name"], x["Event"]))
 
-with open('Olympic Athletes - athlete_events.csv', 'rt') as file:
-    next(file)  
-    people = []
-    for line in file:
-        line = line.strip()
-        split = line.split(',')
-        id = split[0]
-        Name = split[1]
-        Sex = split[2]
-        Age = split[3]
-        Height = split[4]
-        Weight = split[5]
-        Team =split[6]
-        noc = split[7]
-        Games = split[8]
-        Year = split[9]
-        Season = split[10]
-        City = split[11]
-        Sport = split[12]
-        Event = split[13]
-        Medal = split[14]
-        people.append((1, 2, 3, 4)) 
-#       print(people)
+    summary = {"Gold": 0, "Silver": 0, "Bronze": 0}
+    for row in filtered_data:
+        summary[row["Medal"]] += 1
 
-            
+    return filtered_data[:10], summary
+
+def total_medals_by_year(data, year):
+    filtered_data = [row for row in data if row.get("Year") == year and row.get("Medal") != "NA"]
+    summary = {}
+    for row in filtered_data:
+        team = row.get("Team", "Unknown")
+        if team not in summary:
+            summary[team] = {"Gold": 0, "Silver": 0, "Bronze": 0}
+        summary[team][row["Medal"]] += 1
+    return summary
+
+def save_to_file(output_file, content):
+    with open(output_file, "w", encoding="utf-8") as f:
+        f.write(content)
+
+def main():
+    try:
+        args = sys.argv
+        file_path, command, country, year, output_file = parse_arguments(args)
+        data = read_csv(file_path)
+        
+        if command == "-medals":
+            medalists, summary = medals_per_country(data, country, year)
+            result = "Медалісти:\n"
+            result += "\n".join([f"{row['Name']} - {row['Event']} - {row['Medal']}" for row in medalists])
+            result += "\n\nСумарна кількість медалей:\n"
+            result += f"Gold: {summary['Gold']}, Silver: {summary['Silver']}, Bronze: {summary['Bronze']}\n"
+            print(result)
+            if output_file:
+                save_to_file(output_file, result)
+        
+    except Exception as e:
+        print(f"Trouble: {e}")
+
+if __name__== "__main__":
+    main()
