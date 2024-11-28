@@ -16,6 +16,12 @@ def parse_arguments(args):
         output_file = args[6] if len(args) > 6 and args[5] == "-output" else None
         return file_path, command, country, year, output_file
     
+    elif command == "-total":
+        if len(args) < 4:
+            raise ValueError("Для команди -total необхідно вказати рік.")
+        year = args[3]
+        return file_path, command, None, year, None
+
     else:
         raise ValueError(f"Trouble with: {command}")
 
@@ -74,6 +80,12 @@ def main():
             print(result)
             if output_file:
                 save_to_file(output_file, result)
+
+        elif command == "-total":
+            summary = total_medals_by_year(data, year)
+            result = "Результати за країнами:\n"
+            result += "\n".join([f"{team} - Gold: {medals['Gold']}, Silver: {medals['Silver']}, Bronze: {medals['Bronze']}" for team, medals in summary.items()])
+            print(result)
         
     except Exception as e:
         print(f"Trouble: {e}")
