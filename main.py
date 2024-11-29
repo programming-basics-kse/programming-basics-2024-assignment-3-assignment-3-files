@@ -1,8 +1,12 @@
+import argparse
 import sys
+
+def parse_medal_count(value):
+    return int(value) if value.isdigit() else 0
 
 def process_data(data_file):
     results = []
-    data_file = "athlete_events.tsv"
+    data_file = "Olympic Athletes - athlete_events.tsv"
 
     with open(data_file, "r", encoding="utf-8") as file:
         lines = file.readlines()
@@ -17,11 +21,20 @@ def process_data(data_file):
     return results
 
 def output_medals(results, country, year, output_file=None):
+    output_medals(results, country, year, output_file=None):
     output_text = ""
+    bronze = 0
+    silver = 0
+    gold = 0
     for row in results:
         if (row["Team"] == country) and int(row["Year"]) == year:
-            output_text += (f"Country: {row['Team']}, Medals: {row['Gold']} gold, {row['Silver']} silver, "
-                            f"{row['Bronze']} bronze\n")
+            if row["Medal"] == "Gold":
+                gold+=1
+            elif row["Medal"] == "Silver":
+                silver+=1
+            elif row["Medal"] == "Bronze":
+                bronze+=1
+            output_text = (f"Country: {row['Team']}, Medals: {gold} gold, {silver} silver, {bronze} bronze\n")
 
     if not output_text:
         output_text = "No data for this country and year.\n"
@@ -93,6 +106,7 @@ def output_overall(results, countries, output_file=None):
     else:
         print(output_text)
 def output_interactive(results):
+    print("Interactive mode activated. Enter a country name (or 'exit' to quit).")
     while True:
         country = input("Enter a country (or 'exit' to quit): ")
         if country.lower() == 'exit':
@@ -103,100 +117,105 @@ def output_interactive(results):
             print("No data found for this country.")
             continue
 
-        first_participation = None
-        for row in country_data:
-            if first_participation is None or int(row["Year"]) < int(first_participation["Year"]):
-                first_participation = row
+        country_data = [row for row in results if "Team" in row and country in row["Team"]]
+        if not country_data:
+            print(f"No data found for country '{country}'.")
+            continue
+
+        country_data = [row for row in country_data if "Year" in row and row["Year"].isdigit()]
+        if not country_data:
+            print(f"No valid data found for country '{country}'.")
+            continue
+        first_participation = min(country_data, key=lambda x: int(x["Year"]))
         print(f"First participation: {first_participation['Year']} in {first_participation['City']}")
-
-        most_successful_olympics = None
+        medal_counts = {}
         for row in country_data:
-            total_medals = int(row["Gold"]) + int(row["Silver"]) + int(row["Bronze"])
-            if most_successful_olympics is None or total_medals > (int(most_successful_olympics["Gold"]) +
-                                                                   int(most_successful_olympics["Silver"]) +
-                                                                   int(most_successful_olympics["Bronze"])):
-                most_successful_olympics = row
-        total_medals = int(most_successful_olympics["Gold"]) + int(most_successful_olympics["Silver"]) + int(
-            most_successful_olympics["Bronze"])
-        print(f"Most successful Olympics: {most_successful_olympics['Year']} with {total_medals} medals")
+            year = int(row["Year"])
+            medal_type = row["Medal"]
+            if year not in medal_counts:
+                medal_counts[year] = {"Gold": 0, "Silver": 0, "Bronze": 0}
+            if medal_type and medal_type in ["Gold", "Silver", "Bronze"]:
+                medal_counts[year][medal_type] += 1
 
-        least_successful_olympics = None
-        for row in country_data:
-            total_medals = int(row["Gold"]) + int(row["Silver"]) + int(row["Bronze"])
-            if least_successful_olympics is None or total_medals < (int(least_successful_olympics["Gold"]) +
-                                                                    int(least_successful_olympics["Silver"]) +
-                                                                    int(least_successful_olympics["Bronze"])):
-                least_successful_olympics = row
-        total_medals = int(least_successful_olympics["Gold"]) + int(least_successful_olympics["Silver"]) + int(
-            least_successful_olympics["Bronze"])
-        print(f"Least successful Olympics: {least_successful_olympics['Year']} with {total_medals} medals")
+        most_successful_year = None
+        most_medals = 0
+        least_successful_year = None
+        least_medals = float("inf")
 
-        total_gold = 0
-        total_silver = 0
-        total_bronze = 0
-        num_olympics = len(country_data)
+        for year, counts in medal_counts.items():
+            total_medals = sum(counts.values())
+            if total_medals > most_medals:
+                most_medals = total_medals
+                most_successful_year = year
+            if total_medals < least_medals:
+                least_medals = total_medals
+                least_successful_year = year
 
-        for row in country_data:
-            total_gold += int(row["Gold"])
-            total_silver += int(row["Silver"])
-            total_bronze += int(row["Bronze"])
+        if most_successful_year is not None:
+            print(f"Most successful Olympics: {most_successful_year} with {most_medals} medals")
+        if least_successful_year is not None:
+            print(f"Least successful Olympics: {least_successful_year} with {least_medals} medals")
 
-        avg_gold = total_gold / num_olympics
-        avg_silver = total_silver / num_olympics
-        avg_bronze = total_bronze / num_olympics
+        total_gold = sum(counts["Gold"] for counts in medal_counts.values())
+        total_silver = sum(counts["Silver"] for counts in medal_counts.values())
+        total_bronze = sum(counts["Bronze"] for counts in medal_counts.values())
+        num_olympics = len(medal_counts)
+
+        avg_gold = total_gold / num_olympics if num_olympics > 0 else 0
+        avg_silver = total_silver / num_olympics if num_olympics > 0 else 0
+        avg_bronze = total_bronze / num_olympics if num_olympics > 0 else 0
 
         print(f"Average medals per Olympics: Gold: {avg_gold:.2f}, Silver: {avg_silver:.2f}, Bronze: {avg_bronze:.2f}")
         print()
 
 def main():
-    if len(sys.argv) < 3:
-        print("Not enough arguments. Use: python olympics.py <data_file> <command> [...args]")
-        return
+    parser = argparse.ArgumentParser(description="Olympic medals")
+    parser.add_argument('data_file', help="Path to tsv data file")
+    parser.add_argument("-medals", action='store_true', help="Command not in list")
+    parser.add_argument("-overall", action='store_true', help="Command not in list")
+    parser.add_argument("-total", type=int, help="Calculate total medals for a specific year")
+    parser.add_argument("-interactive",  action='store_true', help="Start interactive mode")
+    parser.add_argument("args", nargs="*", help="Arguments for the command")
+    parser.add_argument("Olympic Athletes - athlete_events.tsv", nargs='?', default=None, help="Path to tsv data file")
+    args = parser.parse_args()
 
+    results = process_data(args.data_file)
 
-    data_file = sys.argv[1]
-    command = sys.argv[2]
-    results = process_data(data_file)
+    if not args.data_file:
+        print("Error: You must provide a path to the TSV data file.")
+        sys.exit(1)
 
-    if command == "-medals":
-        if len(sys.argv) < 5:
-            print("Not enough arguments for command -medals. "
-                  "Use: python olympics.py <data_file> -medals <country> <year> [-output <file>]")
-            return
-        country = sys.argv[3]
-        year = int(sys.argv[4])
-        output_file = sys.argv[6] \
-            if "-output" in sys.argv \
-            else None
-        output_medals(results, country, year, output_file)
-
-    elif command == "-total":
-        if len(sys.argv) < 4:
-            print("Not enough arguments for command -total. "
-              "Use: python olympics.py <data_file> -total <year> [-output <file>]")
-        return
-    year = int(sys.argv[3])
-    output_file = sys.argv[5] \
-        if ("-output"
-            in sys.argv) else None
-    output_total(results, year, output_file)
-
-    elif command == "-overall":
-        if len(sys.argv) < 4:
+    if args.medals:
+        if len(sys.argv) < 2:
             print("Not enough arguments for command -overall. "
               "Use: python olympics.py <data_file> -overall <country1> <country2> ... [-output <file>]")
             return
-        countries = sys.argv[3:]
+        country = sys.argv[2]
+        year = int(sys.argv[3])
+        output_file = sys.argv[4] if "-output" in sys.argv else None
+        output_medals(results, country, year, output_file)
+        
+    elif args.total is not None:
+        year = args.total
+        output_file = args.args[0] if len(args.args) > 0 else None
+        output_total(results, year, output_file)
+        
+    elif args.overall is not None:
+        countries = args.args
+        output_file = None
         if "-output" in countries:
             output_index = countries.index("-output")
             output_file = countries[output_index + 1]
             countries = countries[:output_index]
-        else:
-            output_file = None
         output_overall(results, countries, output_file)
-    elif command == "-interactive":
+        
+    elif args.interactive:
+        print("Starting interactive mode...")
+        if not args.data_file:
+            print("Error: You must provide a data file for interactive mode.")
+            sys.exit(1)
         output_interactive(results)
-
     else:
-        print(f"Invalid command: {command}")
+        print("No valid command provided. Use -h for help.")
+        
 main()
