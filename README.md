@@ -91,3 +91,10 @@ phone_book = {
 - 1 бал - виконання практичного завдання при здачі.
 
 - 1 додатковий бал за використання argparse
+
+## Розподіл завдань в команді:
+- Task 1 - Vladyslav Tkachenko (it1v)
+- Task 2 - Vladyslav Tkachenko (it1v)
+- Additional (Переписати роботу класами(для перших двох завдань)) - Vladyslav Tkachenko (it1v)
+- Task 3 - Yana Kitura
+- Task 4 - Yana Kitura
