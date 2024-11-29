@@ -39,9 +39,12 @@ def output_total(results, year, output_file=None):
             country = row["Team"]
             if country not in medal_counts:
                 medal_counts[country] = {"Gold": 0, "Silver": 0, "Bronze": 0}
-            medal_counts[country]["Gold"] += int(row["Gold"])
-            medal_counts[country]["Silver"] += int(row["Silver"])
-            medal_counts[country]["Bronze"] += int(row["Bronze"])
+            if row["Medal"] == "Gold":
+                medal_counts[country]["Gold"] += 1
+            elif row["Medal"] == "Silver":
+                medal_counts[country]["Silver"] += 1
+            elif row["Medal"] == "Bronze":
+                medal_counts[country]["Bronze"] += 1
 
     output_text = ""
     for country, counts in medal_counts.items():
@@ -69,8 +72,8 @@ def output_overall(results, countries, output_file=None):
                 country_medal_years[country] = {}
             if year not in country_medal_years[country]:
                 country_medal_years[country][year] = 0
-
-            country_medal_years[country][year] += total_medals
+            if medal_type in ["Gold", "Silver", "Bronze"]:
+                country_medal_years[country][year] += 1
 
     output_text = ""
     for country in countries:
