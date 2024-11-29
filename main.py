@@ -21,7 +21,6 @@ def process_data(data_file):
     return results
 
 def output_medals(results, country, year, output_file=None):
-    output_medals(results, country, year, output_file=None):
     output_text = ""
     bronze = 0
     silver = 0
