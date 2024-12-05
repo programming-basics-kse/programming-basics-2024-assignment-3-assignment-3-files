@@ -21,7 +21,11 @@ def parse_arguments(args):
             raise ValueError("Для команди -total необхідно вказати рік.")
         year = args[3]
         return file_path, command, None, year, None
-
+    elif command == "-overall":
+        if len(args) < 4:
+            raise ValueError("Для -overall необхідно вказати щонайменше одну країну.")
+        countries = args[3:]
+        return file_path, command, countries, None, None
     else:
         raise ValueError(f"Trouble with: {command}")
 
