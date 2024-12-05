@@ -64,6 +64,25 @@ def total_medals_by_year(data, year):
             summary[team] = {"Gold": 0, "Silver": 0, "Bronze": 0}
         summary[team][row["Medal"]] += 1
     return summary
+def overall_medals_by_year(data, countries):
+    result = {}
+    for country in countries:
+        country_data = [ row for row in data if (row.get("Team")== country or row.get("NOC") == country) and row.get("Medal") != "NA"]
+        yearly_medals = {}
+
+        for row in country_data:
+            year = row.get("Year")
+            if year not in yearly_medals:
+                yearly_medals[year] = 0
+            yearly_medals[year] += 1
+
+        if yearly_medals:
+            best_year = max(yearly_medals, key=yearly_medals.get)
+            result[country] = best_year, yearly_medals[best_year]
+        else:
+            result[country] = 0, 0
+
+    return result
 
 def save_to_file(output_file, content):
     with open(output_file, "w", encoding="utf-8") as f:
@@ -89,8 +108,17 @@ def main():
             summary = total_medals_by_year(data, year)
             result = "Результати за країнами:\n"
             result += "\n".join([f"{team} - Gold: {medals['Gold']}, Silver: {medals['Silver']}, Bronze: {medals['Bronze']}" for team, medals in summary.items()])
+
             print(result)
-        
+
+        elif command == "-overall":
+            summary = overall_medals_by_country(data, country)
+            result = "Результати для кожної країни:\n"
+            result += "\n".join([f"{country}: {year} - {medals}" for country, (year, medals) in summary.items()])
+            print(result)
+
+
+
     except Exception as e:
         print(f"Trouble: {e}")
 
